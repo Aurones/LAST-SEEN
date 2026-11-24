@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#090b10">
+<title>LAST SEEN</title>
+<style>
+:root{color-scheme:dark;--bg:#090b10;--panel:#151922;--line:#292f3b;--muted:#8992a2;--text:#f3f5f8}
+*{box-sizing:border-box}body{margin:0;background:#050609;color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;justify-content:center;min-height:100dvh}
+#phone{width:min(100%,430px);height:100dvh;min-height:620px;background:radial-gradient(ellipse at 50% 15%,#202b3c 0,#10151f 42%,#090b10 78%);position:relative;overflow:hidden}
+.status{height:34px;padding:9px 22px 0;display:flex;justify-content:space-between;font-size:12px;font-weight:650}
+#home{padding:22px 22px 90px;height:calc(100% - 34px);overflow:auto}
+.date{color:#c2cad6;font-size:14px;margin:8px 0 5px}.clock{font-size:54px;font-weight:250;letter-spacing:-2px;margin-bottom:35px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:25px 12px}.app{border:0;background:none;color:white;display:flex;flex-direction:column;align-items:center;gap:7px;font-size:11px;padding:0}
+.icon{width:57px;height:57px;border-radius:16px;display:grid;place-items:center;font-size:27px;background:linear-gradient(145deg,#333e50,#171d28);box-shadow:0 7px 18px #0007;border:1px solid #ffffff18}
+.messages{background:linear-gradient(145deg,#43d878,#168b4d)}.photos{background:linear-gradient(145deg,#f8d46a,#e16c55)}.phoneapp{background:linear-gradient(145deg,#55d88b,#188b62)}.browser{background:linear-gradient(145deg,#5ba9ff,#3156b9)}.notes{background:linear-gradient(145deg,#ffe58c,#d9a92e);color:#3b3217}.settings{background:linear-gradient(145deg,#aab5c6,#566174)}
+.dock{position:absolute;bottom:15px;left:18px;right:18px;height:76px;border-radius:24px;background:#ffffff19;backdrop-filter:blur(20px);display:flex;justify-content:space-evenly;align-items:center}
+.dock button{border:0;background:none;font-size:26px}
+#appview{position:absolute;inset:34px 0 0;background:#0c1018;display:none;flex-direction:column}
+.top{height:58px;display:flex;align-items:center;padding:0 17px;border-bottom:1px solid var(--line);gap:12px}
+.back{border:0;background:none;color:#78aaff;font-size:16px;padding:8px 0}.apptitle{font-weight:700;font-size:17px;flex:1;text-align:center;margin-right:42px}
+.content{padding:16px;overflow:auto;flex:1}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:11px}
+.muted{color:var(--muted);font-size:12px}.row{display:flex;align-items:center;gap:11px}
+.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#26374d;font-weight:700}
+button.choice{width:100%;text-align:left;padding:14px;border-radius:12px;background:#192333;color:#eaf1ff;border:1px solid #34445c;margin:6px 0;font-size:14px}
+button.choice:active,.app:active{opacity:.7}
+.bubble{max-width:86%;padding:11px 13px;border-radius:16px;margin:9px 0;background:#252c38;line-height:1.4}.mine{margin-left:auto;background:#1768c5}
+input,textarea{width:100%;background:#171e29;color:white;border:1px solid #364151;border-radius:10px;padding:12px;font:inherit}
+textarea{min-height:220px;resize:vertical}
+.photo{height:230px;border-radius:12px;background:linear-gradient(140deg,#343e4e,#111722 55%,#56606a);display:grid;place-items:center;font-size:48px;margin-bottom:12px}
+.notice{color:#f3c978;font-size:12px;margin:12px 0}
+</style>
+</head>
+<body>
+<div id="phone">
+ <div class="status"><span>9:41</span><span>●●●  ▰</span></div>
+ <main id="home">
+  <div class="date">Понедельник, 23 ноября</div><div class="clock">21:41</div>
+  <div class="grid">
+   <button class="app" onclick="openApp('Messages')"><span class="icon messages">●</span>Messages</button>
+   <button class="app" onclick="openApp('Photos')"><span class="icon photos">🌄</span>Photos</button>
+   <button class="app" onclick="openApp('Phone')"><span class="icon phoneapp">☎</span>Phone</button>
+   <button class="app" onclick="openApp('Browser')"><span class="icon browser">◉</span>Browser</button>
+   <button class="app" onclick="openApp('Notes')"><span class="icon notes">▤</span>Notes</button>
+   <button class="app" onclick="openApp('Settings')"><span class="icon settings">⚙</span>Settings</button>
+  </div>
+ </main>
+ <div class="dock"><button onclick="openApp('Phone')">☎</button><button onclick="openApp('Messages')">●</button><button onclick="openApp('Browser')">◉</button><button onclick="openApp('Photos')">🌄</button></div>
+ <section id="appview"><header class="top"><button class="back" onclick="goHome()">‹ Назад</button><div class="apptitle" id="apptitle"></div></header><div class="content" id="content"></div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let state={};
+try{state=JSON.parse(localStorage.getItem('lastseen_save')||'{}')}catch(e){}
+state.flags=state.flags||{};state.notes=state.notes||'';
+function save(){localStorage.setItem('lastseen_save',JSON.stringify(state))}
+function goHome(){$('appview').style.display='none';$('home').style.display='block';document.querySelector('.dock').style.display='flex'}
+function openApp(name){$('home').style.display='none';document.querySelector('.dock').style.display='none';$('appview').style.display='flex';$('apptitle').textContent=name;render(name)}
+function render(name){
+ let c=$('content');
+ if(name==='Messages') c.innerHTML=messages();
+ if(name==='Photos') c.innerHTML=photos();
+ if(name==='Phone') c.innerHTML=phone();
+ if(name==='Browser') c.innerHTML=browser();
+ if(name==='Notes') c.innerHTML='<div class="muted">ЛИЧНАЯ ЗАМЕТКА · СОХРАНЯЕТСЯ АВТОМАТИЧЕСКИ</div><textarea id="note" placeholder="Запишите всё, что важно..."></textarea><p class="muted">Изменения сохраняются на этом устройстве.</p>';
+ if(name==='Settings') c.innerHTML='<div class="card"><b>LAST SEEN</b><p class="muted">Прототип 0.5 · локальное сохранение</p><p>Прогресс: '+Object.keys(state.flags).length+' решений</p></div><button class="choice" onclick="if(confirm(\'Сбросить весь прогресс?\')){localStorage.removeItem(\'lastseen_save\');location.reload()}">Сбросить игру</button>';
+ if(name==='Notes'){$('note').value=state.notes;$('note').addEventListener('input',e=>{state.notes=e.target.value;save()})}
+}
+function messages(){return '<div class="muted">СООБЩЕНИЯ</div>'+
+ '<div class="card row" onclick="thread(\'UNKNOWN\')"><div class="avatar">?</div><div><b>UNKNOWN</b><div class="muted">Ты дома? Нам нужно поговорить.</div></div></div>'+
+ '<div class="card row" onclick="thread(\'Mark\')"><div class="avatar">M</div><div><b>Mark</b><div class="muted">Брат, ты где пропал?</div></div></div>'+
+ '<div class="card row" onclick="thread(\'Alina\')"><div class="avatar">A</div><div><b>Alina</b><div class="muted">Ты обещал мне перезвонить.</div></div></div>'}
+function thread(who){
+ if(who==='UNKNOWN') $('content').innerHTML='<div class="muted">Сегодня · 21:41</div><div class="bubble">Ты дома?</div><div class="bubble">Нам нужно поговорить. Это касается той ночи.</div>'+(state.flags.unknown?'<div class="bubble mine">'+state.flags.unknown_reply+'</div>':'')+'<button class="choice" onclick="reply(\'unknown\',\'Кто это?\')">Кто это?</button><button class="choice" onclick="reply(\'unknown\',\'Что произошло той ночью?\')">Что произошло той ночью?</button><button class="choice" onclick="reply(\'unknown\',\'Не пиши мне.\')">Не пиши мне.</button>';
+ else if(who==='Mark') $('content').innerHTML='<div class="muted">Сегодня · 20:58</div><div class="bubble">Брат, ты где пропал?</div><div class="bubble">У тебя всё нормально? Ты вчера вообще ничего не помнишь?</div>'+(state.flags.mark?'<div class="bubble mine">'+state.flags.mark_reply+'</div>':'')+'<button class="choice" onclick="reply(\'mark\',\'Что было вчера?\')">Что было вчера?</button><button class="choice" onclick="reply(\'mark\',\'Да, всё нормально.\')">Да, всё нормально.</button>';
+ else $('content').innerHTML='<div class="muted">Сегодня · 19:12</div><div class="bubble">Ты обещал мне перезвонить. Я волнуюсь.</div>'+(state.flags.alina?'<div class="bubble mine">'+state.flags.alina_reply+'</div>':'')+'<button class="choice" onclick="reply(\'alina\',\'Прости. У меня странный вечер.\')">Прости. У меня странный вечер.</button><button class="choice" onclick="reply(\'alina\',\'Ты знаешь, что было 13 ноября?\')">Ты знаешь, что было 13 ноября?</button>';
+}
+function reply(key,text){state.flags[key]=true;state.flags[key+'_reply']=text;save();$('content').innerHTML='<div class="bubble mine">'+text+'</div><div class="notice">Сообщение отправлено · ответ пока не получен</div><button class="choice" onclick="render(\'Messages\')">‹ К списку диалогов</button>'}
+function photos(){return '<div class="muted">НЕДАВНО · 13 НОЯБРЯ</div><div class="photo">🌃</div><div class="card"><b>IMG_1148.jpg</b><p class="muted">13 ноября · 23:16</p><p>Ночной снимок возле торгового центра. На заднем плане — вход со стороны парковки.</p><button class="choice" onclick="state.flags.photo=true;save();this.textContent=\'Сохранено в заметках улик\'">Сохранить как улику</button></div><div class="notice">Некоторые детали снимка могут оказаться важнее, чем кажется.</div>'}
+function phone(){return '<div class="muted">НЕДАВНИЕ ВЫЗОВЫ</div><div class="card">↗ Mark <span class="muted"> · сегодня, 20:54 · исходящий</span></div><div class="card">↙ Неизвестный номер <span class="muted"> · вчера, 00:17 · пропущен</span></div><div class="card">↗ Alina <span class="muted"> · вчера, 22:08 · исходящий</span></div><button class="choice" onclick="state.flags.call=true;save();this.textContent=\'Номер отмечен\'">Отметить неизвестный номер</button>'}
+function browser(){return '<div class="card"><div class="muted">ЛОКАЛЬНЫЕ НОВОСТИ · 14 НОЯБРЯ</div><h3>Полиция просит откликнуться очевидцев происшествия у торгового центра</h3><p>Вечером 13 ноября рядом с парковкой торгового центра произошёл инцидент. Полиция проверяет записи камер и просит свидетелей связаться с отделом.</p><p class="muted">Опубликовано 09:12</p><button class="choice" onclick="state.flags.news=true;save();this.textContent=\'Статья сохранена\'">Сохранить статью</button></div>'}
+</script>
+</body></html>
