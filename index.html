@@ -15,7 +15,26 @@ UNKNOWN:{key:'unknown',initial:'?',time:'21:41',opening:['Ты дома?','На�
 Mark:{key:'mark',initial:'M',time:'20:58',opening:['Брат, ты где пропал?','У тебя всё нормально? Ты вчера вообще ничего не помнишь?'],options:['Что было вчера?','Да, всё нормально.'],responses:{'Что было вчера?':['Мы пересеклись поздно вечером. Ты был какой-то потерянный.','Лучше поговорим лично, ладно?'],'Да, всё нормально.':['Окей. Просто проверь телефон. Ты вчера его где-то оставил?']}},
 Alina:{key:'alina',initial:'A',time:'19:12',opening:['Ты обещал мне перезвонить. Я волнуюсь.'],options:['Прости. У меня странный вечер.','Ты знаешь, что было 13 ноября?'],responses:{'Прости. У меня странный вечер.':['Я заметила. Ты весь день отвечаешь как будто не сам.','Если захочешь поговорить — я на связи.'],'Ты знаешь, что было 13 ноября?':['Почему ты спрашиваешь именно про эту дату?','Ты тогда мне так и не перезвонил.']}}
 };
-function esc(v){return String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+
+// Restore real replies for migrated conversations
+for (const p of Object.values(people)) {
+  const s = state.chats[p.key];
+  if (!s) continue;
+
+  const reply = p.responses[s.choice];
+  if (reply && (
+    !s.responses ||
+    !s.responses.length ||
+    s.responses[0].includes('восстановлена') ||
+    s.responses[0].includes('предыдущей версии')
+  )) {
+    s.responses = reply;
+    s.replyTime = p.key === 'unknown' ? '21:42'
+      : p.key === 'mark' ? '21:00' : '21:14';
+  }
+}
+
+  function esc(v){return String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function messages(){return '<div class="muted">СООБЩЕНИЯ</div>'+Object.entries(people).map(([n,p])=>{let s=state.chats[p.key],preview=s?s.choice:p.opening[p.opening.length-1];return '<div class="card row" onclick="thread(\''+n+'\')"><div class="avatar">'+p.initial+'</div><div style="min-width:0;flex:1"><b>'+n+'</b><div class="muted">'+esc(preview)+'</div></div>'+(s?'<span class="tag">отправлено</span>':'')+'</div>'}).join('')}
 function thread(n){let p=people[n],s=state.chats[p.key],h='<div class="timestamp">Сегодня · '+p.time+'</div>'+p.opening.map(t=>'<div class="bubble">'+esc(t)+'</div>').join('');if(s){h+='<div class="timestamp">Ваш ответ</div><div class="bubble mine">'+esc(s.choice)+'</div><div class="timestamp">Ответ · '+s.replyTime+'</div>'+s.responses.map(t=>'<div class="bubble">'+esc(t)+'</div>').join('')+'<div class="notice">Ответ отправлен. Выбор зафиксирован и больше не изменится.</div>'}else h+='<div class="timestamp">Выберите ответ</div>'+p.options.map(t=>'<button class="choice" onclick="sendReply(\''+p.key+'\',\''+t.replace(/'/g,"\\\'")+'\')">'+esc(t)+'</button>').join('');$('content').innerHTML=h}
 function sendReply(k,t){if(state.chats[k])return;let p=Object.values(people).find(x=>x.key===k);state.chats[k]={choice:t,responses:p.responses[t]||['Сообщение прочитано.'],replyTime:k==='unknown'?'21:42':k==='mark'?'21:00':'21:14'};state.flags[k]=true;state.flags[k+'_reply']=t;save();thread(Object.keys(people).find(n=>people[n].key===k))}
