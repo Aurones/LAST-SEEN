@@ -192,7 +192,8 @@ export function readSave(raw) {
       !state.history.every(id => ["search", "update", "tram"].includes(id)) ||
       !Object.values(state.read).every(Number.isInteger) ||
       !Object.values(state.relations).every(Number.isInteger)) return null;
-    if (!state.notes.every(note => typeof note?.id === "string" && typeof note.title === "string" &&
+    if (!state.notes.every(note => typeof note?.id === "string" &&
+      /^(?:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}|note-\d+-\d+)$/.test(note.id) && typeof note.title === "string" &&
       typeof note.text === "string" && Number.isFinite(note.created) && Number.isFinite(note.updated))) return null;
     if (!state.pending.every(event => Number.isFinite(event?.at) && (event.kind === "call" ||
       (event.kind === "reply" && own(state.answers, event.id)))) ||

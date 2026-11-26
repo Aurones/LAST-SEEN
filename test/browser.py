@@ -19,11 +19,17 @@ PREFIX = "/LAST-SEEN/"
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        if self.server.offline.is_set():
+            self.close_connection = True
+            return
+        super().do_GET()
+
     def log_message(self, *_args):
         pass
 
 
-def run(browser, url, screenshots, engine):
+def run(browser, url, screenshots, engine, network_cutoff):
     def context(size=MOBILE, prefs=TEST_PREFS):
         result = browser.new_context(viewport=size, has_touch=True, device_scale_factor=2,
                                      reduced_motion="reduce")
@@ -320,13 +326,14 @@ def run(browser, url, screenshots, engine):
     # The real index entry is refreshed online before exercising offline fallback.
     offline.goto(url + "index.html")
     wait_page(offline, "menu")
-    ctx.set_offline(True)
+    network_cutoff.set()
     offline.goto(url + "?offline")
     wait_page(offline, "menu")
     new_game(offline)
     open_app(offline, "photos")
     offline.locator(".photo-thumb img").first.evaluate("img => img.decode()")
     ctx.close()
+    network_cutoff.clear()
     print(f"{engine}: all three endings, tutorial, resume, all apps, offline cache and five viewport sizes passed.")
 
 
@@ -347,13 +354,14 @@ def main():
         shutil.copytree(ROOT / "assets", target / "assets")
         handler = functools.partial(QuietHandler, directory=temp)
         with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server:
+            server.offline = threading.Event()
             threading.Thread(target=server.serve_forever, daemon=True).start()
             with sync_playwright() as playwright:
                 launch = {}
                 if args.engine == "chromium" and shutil.which("chromium"):
                     launch["executable_path"] = shutil.which("chromium")
                 browser = getattr(playwright, args.engine).launch(**launch)
-                run(browser, f"http://127.0.0.1:{server.server_port}{PREFIX}", args.screenshots, args.engine)
+                run(browser, f"http://127.0.0.1:{server.server_port}{PREFIX}", args.screenshots, args.engine, server.offline)
                 browser.close()
             server.shutdown()
 
