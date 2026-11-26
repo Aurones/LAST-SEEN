@@ -1,18 +1,28 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080b11"><title>LAST SEEN</title>
-<link rel="stylesheet" href="./style.css">
-<script type="module" src="./script.mjs"></script>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090a0d">
+  <meta name="description" content="Интерактивный криминальный триллер в интерфейсе смартфона. Эпизод 01 — 21:41.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>LAST SEEN — 21:41</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="icon" href="./assets/icon.svg">
+  <link rel="stylesheet" href="./style.css?v=1.1">
+  <script type="module" src="./script.mjs?v=1.1"></script>
 </head>
 <body>
-<div id="phone">
-  <header class="status"><span>21:41</span><span>●●● &nbsp; 43%</span></header>
-  <main id="screen"></main>
-  <nav id="dock" aria-label="Навигация по телефону">
-    <button data-view="home">Домой</button>
-    <button data-view="messages">Чаты</button>
-    <button data-view="evidence">Улики</button>
-    <button data-view="notes">Заметки</button>
-  </nav>
-  <p id="notice" role="status"></p>
-</div>
-</body></html>
+  <div id="phone" data-page="splash">
+    <header id="status" class="status" hidden></header>
+    <main id="screen" aria-label="Экран телефона">
+      <section class="cover splash"><h1>LAST SEEN</h1><p>EPISODE 01 — 21:41</p></section>
+    </main>
+    <footer id="system" hidden><button data-action="home" class="gesture" aria-label="На домашний экран"><span></span></button></footer>
+    <p id="notice" role="status"></p>
+  </div>
+  <noscript>Для игры нужен JavaScript.</noscript>
+</body>
+</html>
