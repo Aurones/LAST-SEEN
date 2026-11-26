@@ -36,6 +36,7 @@ def run(browser, url, screenshots, engine):
         if label in {"01-menu", "02-lock", "03-home", "07-ringing", "12-ending"}:
             assert page.locator("#phone").evaluate(
                 "node => getComputedStyle(node).backgroundColor !== 'rgb(244, 244, 248)'")
+        page.evaluate("Promise.all([...document.images].map(img => img.decode()))")
         if screenshots:
             page.screenshot(path=screenshots / f"{label}.png", animations="disabled")
         assert page.evaluate("document.documentElement.scrollWidth === innerWidth"), label
@@ -161,7 +162,7 @@ def run(browser, url, screenshots, engine):
     open_thread(page, "unknown")
     expect(page.get_by_text("Что произошло той ночью?", exact=True)).to_be_visible()
     expect(page.locator('[data-action="select"]')).to_have_count(0)
-    assert not page.locator('[data-open="ending"]').count()
+    expect(page.locator('[data-id="ending"], [data-id^="record:"]')).to_have_count(0)
 
     def solve(page, final, accept, first_done=False):
         if not first_done:
@@ -283,6 +284,13 @@ def run(browser, url, screenshots, engine):
     open_thread(pending, "unknown")
     expect(pending.get_by_text("Сначала скажи, ты один?", exact=True)).to_have_count(1)
     expect(pending.get_by_text("Старый текст", exact=True)).to_have_count(0)
+    pending.close()
+    reopened = ctx.new_page()
+    reopened.goto(url)
+    wait_page(reopened, "menu")
+    click(reopened, "continue")
+    open_thread(reopened, "unknown")
+    expect(reopened.get_by_text("Сначала скажи, ты один?", exact=True)).to_have_count(1)
     ctx.close()
 
     for size in [{"width": 320, "height": 568}, {"width": 375, "height": 667},
