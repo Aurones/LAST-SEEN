@@ -358,8 +358,12 @@ def main():
             threading.Thread(target=server.serve_forever, daemon=True).start()
             with sync_playwright() as playwright:
                 launch = {}
-                if args.engine == "chromium" and shutil.which("chromium"):
-                    launch["executable_path"] = shutil.which("chromium")
+                if args.engine == "chromium":
+                    for executable in ("chromium", "google-chrome", "google-chrome-stable"):
+                        installed = shutil.which(executable)
+                        if installed:
+                            launch["executable_path"] = installed
+                            break
                 browser = getattr(playwright, args.engine).launch(**launch)
                 run(browser, f"http://127.0.0.1:{server.server_port}{PREFIX}", args.screenshots, args.engine, server.offline)
                 browser.close()
